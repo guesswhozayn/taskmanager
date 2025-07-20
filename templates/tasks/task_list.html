@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}My Tasks{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">My Tasks</h1>
+
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h4 class="mb-0">Add New Task</h4>
+    </div>
+    <div class="card-body">
+        <form action="{% url 'add_task' %}" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-3">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-info w-100">Add Task</button>
+        </form>
+    </div>
+</div>
+
+<h2 class="mt-5 mb-3">Your Current Tasks</h2>
+{% if tasks %}
+<ul class="list-group" id="task-list"> {# Add an ID to the ul for easier JS selection #}
+    {% for task in tasks %}
+    <li class="list-group-item d-flex justify-content-between align-items-center
+        {% if task.completed %}list-group-item-success{% else %}list-group-item-light{% endif %}"
+        id="task-item-{{ task.id }}"> {# Add ID for easy removal/update #}
+        <div>
+            <input type="checkbox" class="form-check-input me-2 task-checkbox"
+                   {% if task.completed %}checked{% endif %}
+                   data-task-id="{{ task.id }}"> {# Changed to data-task-id #}
+            <span class="task-title-{{ task.id }} {% if task.completed %}text-decoration-line-through{% endif %}">
+                <strong>{{ task.title }}</strong>
+                {% if task.description %}<br><small class="text-muted">{{ task.description }}</small>{% endif %}
+            </span>
+            {% if task.due_date %}
+                <br><small class="text-warning">Due: {{ task.due_date|date:"M d, Y P" }}</small>
+            {% endif %}
+            {% if task.priority %}
+                <span class="badge bg-secondary ms-2">{{ task.get_priority_display }}</span>
+            {% endif %}
+            <br><small class="text-muted">Created: {{ task.created_at|naturaltime }}</small>
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-danger delete-btn" data-task-id="{{ task.id }}">Delete</button> {# Changed to data-task-id #}
+        </div>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="alert alert-info" role="alert">
+    You don't have any tasks yet. Add one above!
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}
